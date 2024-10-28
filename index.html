@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <title>deck.gl example</title>
     <style>
+      .sidePanel {
+            width: 350px;
+            height: 580px;
+            float: left;
+            margin-right: 10px;
+        }
+
       #container {
         position: fixed;
         top: 0;
@@ -11,6 +18,11 @@
         right: 0;
         bottom: 0;
         background: #000;
+        position: relative;
+        width: calc(100% - 360px);
+        min-width:290px;
+        height: 600px;
+        float: left;
       }
 
       #container > * {
@@ -21,18 +33,47 @@
         height: 100%;
       }
 
-      #map {
+      #myMap {
         opacity: 0.5;
+        
       }
 
-      #deck-canvas {
+      canvas#deck-canvas {
         mix-blend-mode: screen;
+        position: relative;
+        width: calc(100% - 360px);
+        min-width:290px;
+        height: 600px;
+        float: left;
       }
     </style>
   </head>
   <body>
+    <div class="sidePanel">
+        <fieldset style="width:320px;margin-bottom:10px;">
+            <legend>Flowmap Sample</legend>
+            This sample shows how to apply flowmap layer on Azure Maps with the module flowmap.gl.<br /><br />
+            The code references its
+             <a href="https://github.com/visgl/flowmap.gl/blob/main/examples/react-app/src/App.tsx#L49" target="_blank">example</a>.
+        </fieldset>
+        
+        <table>
+            <tr title="Color Scheme">
+                <td>Color Scheme:</td>
+                <td>
+                    <select class="control" id="colorScheme" title="Color Scheme">
+                        <option>Blues</option>
+                        <option>Cool</option>
+                        <option>Peach</option>
+                        <option>Magenta</option>
+                        <option selected="selected">Teal</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
     <div id="container">
-      <div id="map"></div>
+      <div id="myMap"></div>
       <canvas id="deck-canvas"></canvas>
     </div>
     <script type="module" src="main.js"></script>
