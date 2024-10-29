@@ -4,7 +4,7 @@
  */
 
 import {Deck} from "@deck.gl/core";
-import {FlowmapLayer} from "@flowmap.gl/layers";
+import {FlowmapLayer, PickingType} from '@flowmap.gl/layers';
 import {getViewStateForLocations} from "@flowmap.gl/data";
 import {csv} from "d3-fetch";
 import atlas from "azure-maps-control";
@@ -79,9 +79,12 @@ function onload () {
     addLayer();
 
     document.querySelectorAll(".control").forEach((control) => {
-      console.log(control);
       control.onchange = addLayer;
     });
+    const flowmap = document.getElementById("deck-canvas");
+    const mapContainer = document.getElementById("myMap");
+    mapContainer.insertBefore(flowmap, mapContainer.querySelector(".atlas-control-container"));
+
   });
 }
 function addLayer() {
@@ -99,15 +102,59 @@ function addLayer() {
         getFlowDestId: (flow) => flow.dest,
         getFlowMagnitude: (flow) => flow.count,
         getLocationName: (loc) => loc.name,
+        onHover: (info) => updateTooltip(getTooltipState(info)),
       }),
     ],
   });
-  console.log("Layer added");
 }
 
 function getSelectValue(id) {
   var elm = document.getElementById(id);
   return elm.options[elm.selectedIndex].value;
+}
+
+function updateTooltip(state) {
+  const tooltip = document.getElementById("tooltip");
+  if (!state) {
+    tooltip.style.display = "none";
+    return;
+  }
+    tooltip.style.left = state.position.left;
+    tooltip.style.top = state.position.top;
+    tooltip.innerHTML = state.content;
+    tooltip.style.display = "block";
+}
+
+function getTooltipState(info) {
+  if (!info) return undefined;
+
+  const {x, y, object} = info;
+  const position = {left: x, top: y};
+  switch (object?.type) {
+    case PickingType.LOCATION:
+      const nameElm = document.createElement("div");
+      nameElm.innerText = object.name;
+      const incomingElm = document.createElement("div");
+      incomingElm.innerText = `Incoming trips: ${object.totals.incomingCount}`;
+      const outgoingElm = document.createElement("div");
+      outgoingElm.innerText = `Outgoing trips: ${object.totals.outgoingCount}`;
+      const internalElm = document.createElement("div");
+      internalElm.innerText = `Internal or round trips: ${object.totals.internalCount}`;
+      return {
+        position,
+        content: [nameElm, incomingElm, outgoingElm, internalElm].map((elm) => elm.outerHTML).join(""),
+      };
+    case PickingType.FLOW:
+      const routeElm = document.createElement("div");
+      routeElm.innerText = `${object.origin.id} → ${object.dest.id}`;
+      const countElm = document.createElement("div");
+      countElm.innerText = `Count: ${object.count}`;
+      return {
+        position,
+        content: [routeElm, countElm].map((elm) => elm.outerHTML).join(""),
+      };
+  }
+  return undefined;
 }
 
 document.body.onload = onload;
