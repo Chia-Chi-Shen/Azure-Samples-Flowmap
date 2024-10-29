@@ -15,7 +15,9 @@ const key = import.meta.env.VITE_AZURE_MAPS_KEY;
 // BIXI rides
 const DATA_PATH = `https://gist.githubusercontent.com/ilyabo/68d3dba61d86164b940ffe60e9d36931/raw/a72938b5d51b6df9fa7bba9aa1fb7df00cd0f06a`;
 
-const onload = () => {
+let deck, locations, flows;
+
+function onload () {
   async function fetchData() {
     return await Promise.all([
       csv(`${DATA_PATH}/locations.csv`, (row, i) => ({
@@ -33,7 +35,7 @@ const onload = () => {
   }
 
   fetchData().then((data) => {
-    const {locations, flows} = data;
+    ({locations, flows} = data);
     const [width, height] = [globalThis.innerWidth, globalThis.innerHeight];
     const initialViewState = getViewStateForLocations(
       locations,
@@ -42,7 +44,7 @@ const onload = () => {
       {pad: 0.3}
     );
 
-    const map = new atlas.Map("map", {
+    const map = new atlas.Map("myMap", {
       authOptions: {
         authType: atlas.AuthenticationType.subscriptionKey,
         subscriptionKey: key,
@@ -56,7 +58,7 @@ const onload = () => {
       pitch: initialViewState.pitch,
     });
 
-    const deck = new Deck({
+    deck = new Deck({
       canvas: "deck-canvas",
       width: "100%",
       height: "100%",
@@ -74,24 +76,38 @@ const onload = () => {
       layers: [],
     });
 
-    deck.setProps({
-      layers: [
-        new FlowmapLayer({
-          id: "my-flowmap-layer",
-          data: {locations, flows},
-          pickable: true,
-          getLocationId: (loc) => loc.id,
-          getLocationLat: (loc) => loc.lat,
-          getLocationLon: (loc) => loc.lon,
-          getFlowOriginId: (flow) => flow.origin,
-          getFlowDestId: (flow) => flow.dest,
-          getFlowMagnitude: (flow) => flow.count,
-          getLocationName: (loc) => loc.name,
-          onHover: (info) => {console.log(info)},
-        }),
-      ],
+    addLayer();
+
+    document.querySelectorAll(".control").forEach((control) => {
+      console.log(control);
+      control.onchange = addLayer;
     });
   });
+}
+function addLayer() {
+  deck.setProps({
+    layers: [
+      new FlowmapLayer({
+        id: "my-flowmap-layer",
+        data: {locations, flows},
+        pickable: true,
+        colorScheme: getSelectValue("colorScheme"),
+        getLocationId: (loc) => loc.id,
+        getLocationLat: (loc) => loc.lat,
+        getLocationLon: (loc) => loc.lon,
+        getFlowOriginId: (flow) => flow.origin,
+        getFlowDestId: (flow) => flow.dest,
+        getFlowMagnitude: (flow) => flow.count,
+        getLocationName: (loc) => loc.name,
+      }),
+    ],
+  });
+  console.log("Layer added");
+}
+
+function getSelectValue(id) {
+  var elm = document.getElementById(id);
+  return elm.options[elm.selectedIndex].value;
 }
 
 document.body.onload = onload;
