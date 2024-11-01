@@ -8,7 +8,7 @@ import {FlowmapLayer, PickingType} from '@flowmap.gl/layers';
 import {getViewStateForLocations} from "@flowmap.gl/data";
 import {csv} from "d3-fetch";
 import atlas from "azure-maps-control";
-import "azure-maps-control/dist/atlas.min.css";
+// import "azure-maps-control/dist/atlas.min.css";
 
 const key = import.meta.env.VITE_AZURE_MAPS_KEY;
 
