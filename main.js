@@ -148,7 +148,7 @@ function getTooltipState(info) {
   switch (object?.type) {
     case PickingType.LOCATION:
       const nameElm = document.createElement("b");
-      nameElm.innerText = object.name;
+      nameElm.innerText = object.name.replaceAll("\"", "");
       const incomingElm = document.createElement("li");
       incomingElm.innerText = `Incoming trips: ${object.totals.incomingCount}`;
       const outgoingElm = document.createElement("li");
