@@ -3,7 +3,6 @@ import {FlowmapLayer, PickingType} from '@flowmap.gl/layers';
 import {getViewStateForLocations} from "@flowmap.gl/data";
 import {csv} from "d3-fetch";
 import atlas from "azure-maps-control";
-import "azure-maps-control/dist/atlas.min.css";
 
 // Import BIXI rides data
 const DATA_PATH = `https://gist.githubusercontent.com/ilyabo/68d3dba61d86164b940ffe60e9d36931/raw/a72938b5d51b6df9fa7bba9aa1fb7df00cd0f06a`;
@@ -12,23 +11,9 @@ let deck, locations, flows;
 let map;
 
 function onload () {
-    async function fetchData() {
-        return await Promise.all([
-            csv(`${DATA_PATH}/locations.csv`, (row, i) => ({
-                id: row.id,
-                name: row.name,
-                lat: Number(row.lat),
-                lon: Number(row.lon),
-            })),
-            csv(`${DATA_PATH}/flows.csv`, (row) => ({
-                origin: row.origin,
-                dest: row.dest,
-                count: Number(row.count),
-            })),
-        ]).then(([locations, flows]) => ({locations, flows}));
-    }
-
+    //Fetch the data.
     fetchData().then((data) => {
+        //Retrieve the locations and flows from the data.
         ({locations, flows} = data);
         const [width, height] = [globalThis.innerWidth, globalThis.innerHeight];
         const initialViewState = getViewStateForLocations(
@@ -37,10 +22,11 @@ function onload () {
             [width, height],
             {pad: 0.3}
         );
-
+        //Initialize a map instance.
         map = new atlas.Map("myMap", {
             style: 'grayscale_dark',
             interactive: false,
+            //Deck.gl will be responsible for the interactivity of the map.
             center: [initialViewState.longitude, initialViewState.latitude],
             zoom: initialViewState.zoom,
             bearing: initialViewState.bearing,
@@ -64,6 +50,7 @@ function onload () {
             }
         });
 
+        //Add a style control to the map.
         map.events.add("ready", () => {
             map.controls.add(new atlas.control.StyleControl({
                 mapStyles: ['road', 'grayscale_light', 'grayscale_dark', 'night', 'satellite'],
@@ -72,6 +59,7 @@ function onload () {
             });
         });
 
+        //Initialize a deck.gl instance.
         deck = new Deck({
             canvas: "deck-canvas",
             width: "100%",
@@ -79,6 +67,8 @@ function onload () {
             initialViewState: initialViewState,
             controller: true,
             map: true,
+
+            //Update the map view state when the deck.gl view state changes.
             onViewStateChange: ({viewState}) => {
                 map.setCamera({
                     center: [viewState.longitude, viewState.latitude],
@@ -90,20 +80,40 @@ function onload () {
             layers: [],
         });
 
+        //Add the flowmap layer to the deck.gl instance.
         addLayer();
 
+        //Add event listeners to the controls on the side panel.
         document.querySelectorAll(".control").forEach((control) => {
             control.onchange = addLayer;
         });
         document.getElementById("darkMode").onchange = onDarkModeChange;
 
+        //Move the canvas under the map controls for better accessibility.
         const flowmap = document.getElementById("deck-canvas");
         const mapContainer = document.getElementById("myMap");
         mapContainer.insertBefore(flowmap, mapContainer.querySelector(".atlas-control-container"));
-
     });
 }
+
+async function fetchData() {
+  return await Promise.all([
+      csv(`${DATA_PATH}/locations.csv`, (row) => ({
+          id: row.id,
+          name: row.name,
+          lat: Number(row.lat),
+          lon: Number(row.lon),
+      })),
+      csv(`${DATA_PATH}/flows.csv`, (row) => ({
+          origin: row.origin,
+          dest: row.dest,
+          count: Number(row.count),
+      })),
+  ]).then(([locations, flows]) => ({locations, flows}));
+}
+
 function addLayer() {
+    //Set up the flowmap layer whenever the selected options change.
     deck.setProps({
         layers: [
             new FlowmapLayer({
