@@ -147,26 +147,28 @@ function getTooltipState(info) {
   const position = {left: x, top: y};
   switch (object?.type) {
     case PickingType.LOCATION:
-      const nameElm = document.createElement("div");
+      const nameElm = document.createElement("b");
       nameElm.innerText = object.name;
-      const incomingElm = document.createElement("div");
+      const incomingElm = document.createElement("li");
       incomingElm.innerText = `Incoming trips: ${object.totals.incomingCount}`;
-      const outgoingElm = document.createElement("div");
+      const outgoingElm = document.createElement("li");
       outgoingElm.innerText = `Outgoing trips: ${object.totals.outgoingCount}`;
-      const internalElm = document.createElement("div");
+      const internalElm = document.createElement("li");
       internalElm.innerText = `Internal or round trips: ${object.totals.internalCount}`;
       return {
         position,
         content: [nameElm, incomingElm, outgoingElm, internalElm].map((elm) => elm.outerHTML).join(""),
       };
     case PickingType.FLOW:
-      const routeElm = document.createElement("div");
-      routeElm.innerText = `${object.origin.id} → ${object.dest.id}`;
-      const countElm = document.createElement("div");
-      countElm.innerText = `Count: ${object.count}`;
+      const titleElm = document.createElement("b");
+      titleElm.innerText = "Route Info";
+      const routeElm = document.createElement("li");
+      routeElm.innerText = `Bike Station: ${object.origin.id.slice(2, -2)} → ${object.dest.id.slice(2, -2)}`;
+      const countElm = document.createElement("li");
+      countElm.innerText = `Trips Count: ${object.count}`;
       return {
         position,
-        content: [routeElm, countElm].map((elm) => elm.outerHTML).join(""),
+        content: [titleElm, routeElm, countElm].map((elm) => elm.outerHTML).join(""),
       };
   }
   return undefined;
