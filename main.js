@@ -19,21 +19,22 @@ let deck, locations, flows;
 let map;
 
 function onload () {
-  async function fetchData() {
-    return await Promise.all([
-      csv(`${DATA_PATH}/locations.csv`, (row, i) => ({
-        id: row.id,
-        name: row.name,
-        lat: Number(row.lat),
-        lon: Number(row.lon),
-      })),
-      csv(`${DATA_PATH}/flows.csv`, (row) => ({
-        origin: row.origin,
-        dest: row.dest,
-        count: Number(row.count),
-      })),
-    ]).then(([locations, flows]) => ({locations, flows}));
-  }
+    async function fetchData() {
+        const [locations, flows] = await Promise.all([
+            csv('/data/flowmap/locations.csv', (row) => ({
+                id: row.id,
+                name: row.name,
+                lat: +row.lat,
+                lon: +row.lon,
+            })),
+            csv('/data/flowmap/flows.csv', (row) => ({
+                origin: row.origin,
+                dest: row.dest,
+                count: +row.count,
+            })),
+        ]);
+        return { locations, flows };
+    }    
 
   fetchData().then((data) => {
     ({locations, flows} = data);
